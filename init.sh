@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
   THIS_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"

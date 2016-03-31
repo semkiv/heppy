@@ -1,7 +1,7 @@
 # Copyright (C) 2014 Colin Bernet
 # https://github.com/cbernet/heppy/blob/master/LICENSE
 
-import ROOT 
+import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 import os
@@ -14,44 +14,44 @@ from event import Event
 import timeit
 
 class Setup(object):
-    '''The Looper creates a Setup object to hold information relevant during 
-    the whole process, such as the process configuration obtained from 
+    '''The Looper creates a Setup object to hold information relevant during
+    the whole process, such as the process configuration obtained from
     the configuration file, or services that can be used by several analyzers.
 
-    The user may freely attach new information to the setup object, 
-    as long as this information is relevant during the whole process. 
-    If the information is event specific, it should be attached to the event 
+    The user may freely attach new information to the setup object,
+    as long as this information is relevant during the whole process.
+    If the information is event specific, it should be attached to the event
     object instead.
-    ''' 
+    '''
     def __init__(self, config, services):
         '''
-        Create a Setup object. 
-        
-        parameters: 
-        
+        Create a Setup object.
+
+        parameters:
+
         config: configuration object from the configuration file
-        
+
         services: dictionary of services indexed by service name.
-        The service name has the form classObject_instanceLabel 
-        as in this example: 
+        The service name has the form classObject_instanceLabel
+        as in this example:
         <base_heppy_path>.framework.services.tfile.TFileService_myhists
-        To find out about the service name of a given service, 
-        load your configuration file in python, and print the service. 
+        To find out about the service name of a given service,
+        load your configuration file in python, and print the service.
         '''
         self.config = config
         self.services = services
-        
+
     def close(self):
         '''Stop all services'''
         for service in self.services.values():
             service.stop()
-        
+
 
 class Looper(object):
     """Creates a set of analyzers, and schedules the event processing."""
 
     def __init__( self, name,
-                  config, 
+                  config,
                   nEvents=None,
                   firstEvent=0,
                   nPrint=0,
@@ -72,11 +72,15 @@ class Looper(object):
 
         self.name = self._prepareOutput(name)
         self.outDir = self.name
+        # self.logger writes to stdout and to log.txt.
+        # configured in the users cfg by doing:
+        # import logging
+        #   logging.basicConfig(level=logging.ERROR)
         self.logger = logging.getLogger( self.name )
         self.logger.addHandler(logging.FileHandler('/'.join([self.name,
                                                              'log.txt'])))
         self.logger.propagate = False
-        if not quiet: 
+        if not quiet:
             self.logger.addHandler( logging.StreamHandler(sys.stdout) )
 
         self.cfg_comp = config.components[0]
@@ -108,7 +112,7 @@ class Looper(object):
                 self.nEvents = int(ceil(totevents/float(fineSplitFactor)))
                 self.firstEvent = firstEvent + fineSplitIndex * self.nEvents
                 if self.firstEvent + self.nEvents >= totevents:
-                    self.nEvents = totevents - self.firstEvent 
+                    self.nEvents = totevents - self.firstEvent
                 #print "For component %s will process %d events starting from the %d one, ending at %d excluded" % (self.cfg_comp.name, self.nEvents, self.firstEvent, self.nEvents + self.firstEvent)
         # self.event is set in self.process
         self.event = None
@@ -117,12 +121,12 @@ class Looper(object):
             service = self._build(cfg_serv)
             services[cfg_serv.name] = service
         # would like to provide a copy of the config to the setup,
-        # so that analyzers cannot modify the config of other analyzers. 
+        # so that analyzers cannot modify the config of other analyzers.
         # but cannot copy the autofill config.
         self.setup = Setup(config, services)
 
     def _build(self, cfg):
-        try: 
+        try:
             theClass = cfg.class_object
         except AttributeError:
             errfgmt = 'an object of class {cfg_class}'.format(
@@ -133,14 +137,14 @@ class Looper(object):
                     class_name=cfg.__name__
                 )
             err='''
-The looper is trying to build an analyzer configured by {errfgmt}. 
+The looper is trying to build an analyzer configured by {errfgmt}.
 
 Make sure that the configuration object is of class cfg.Analyzer.
             '''.format(errfgmt=errfgmt)
             raise ValueError(err)
         obj = theClass( cfg, self.cfg_comp, self.outDir )
         return obj
-        
+
     def _prepareOutput(self, name):
         index = 0
         tmpname = name
@@ -160,7 +164,7 @@ Make sure that the configuration object is of class cfg.Analyzer.
     def loop(self):
         """Loop on a given number of events.
 
-        At the beginning of the loop, 
+        At the beginning of the loop,
         Analyzer.beginLoop is called for each Analyzer.
         At each event, self.process is called.
         At the end of the loop, Analyzer.endLoop is called.
@@ -172,26 +176,23 @@ Make sure that the configuration object is of class cfg.Analyzer.
             nEvents = len(self.events)
         else:
             nEvents = int(nEvents)
-        eventSize = nEvents
         self.logger.info(
             'starting loop at event {firstEvent} '\
-                'to process {eventSize} events.'.format(firstEvent=firstEvent,
-                                                        eventSize=eventSize))
+                'to process {nEvents} events.'.format(firstEvent=firstEvent,
+                                                        nEvents=nEvents))
         self.logger.info( str( self.cfg_comp ) )
         for analyzer in self.analyzers:
             analyzer.beginLoop(self.setup)
         try:
-            for iEv in range(firstEvent, firstEvent+eventSize):
-                # if iEv == nEvents:
-                #     break
+            for iEv in range(firstEvent, firstEvent+nEvents):
                 if iEv%100 ==0:
                     # print 'event', iEv
                     if not hasattr(self,'start_time'):
-                        print 'event', iEv
+                        self.logger.info( 'event {iEv}'.format(iEv=iEv))
                         self.start_time = timeit.default_timer()
                         self.start_time_event = iEv
                     else:
-                        print 'event %d (%.1f ev/s)' % (iEv, (iEv-self.start_time_event)/float(timeit.default_timer() - self.start_time))
+                        self.logger.info( 'event %d (%.1f ev/s)' % (iEv, (iEv-self.start_time_event)/float(timeit.default_timer() - self.start_time)) )
 
                 self.process( iEv )
                 if iEv<self.nPrint:
@@ -201,11 +202,9 @@ Make sure that the configuration object is of class cfg.Analyzer.
             print 'Stopped loop following a UserWarning exception'
 
         warning = self.logger.warning
-        info = self.logger.info
-        warning('number of events processed: {nEv}'.format(nEv=iEv+1))
         warning('')
         warning( self.cfg_comp )
-        warning('')        
+        warning('')
         for analyzer in self.analyzers:
             analyzer.endLoop(self.setup)
         if self.timeReport:
@@ -225,6 +224,9 @@ Make sure that the configuration object is of class cfg.Analyzer.
             warning("%9s   %9s    %9s   %9s   %s" % ("---------","--------","---------", "---------", "-------------"))
             warning("%9d   %9d   %10.2f  %10.2f %5.1f%%   %s" % ( passev, allev, 1000*totPerProcEv, 1000*totPerAllEv, 100.0, "TOTAL"))
             warning("")
+        logfile = open('/'.join([self.name,'log.txt']),'a')
+        logfile.write('number of events processed: {nEv}\n'.format(nEv=iEv+1))
+        logfile.close()
 
     def process(self, iEv ):
         """Run event processing for all analyzers in the sequence.
@@ -257,7 +259,7 @@ Make sure that the configuration object is of class cfg.Analyzer.
         """
         for analyzer in self.analyzers:
             analyzer.write(self.setup)
-        self.setup.close() 
+        self.setup.close()
 
 
 if __name__ == '__main__':

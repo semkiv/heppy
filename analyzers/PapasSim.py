@@ -1,5 +1,5 @@
 from heppy.framework.analyzer import Analyzer
-from heppy.particles.fcc.particle import Particle 
+from heppy.particles.fcc.particle import Particle
 
 import math
 from heppy.papas.simulator import Simulator
@@ -15,33 +15,33 @@ from heppy.papas.pfalgo.pfinput import PFInput
 
 from ROOT import TLorentzVector, TVector3
 
-        
+
 class PapasSim(Analyzer):
     '''Runs PAPAS, the PArametrized Particle Simulation.
 
-    Example configuration: 
+    Example configuration:
 
     from heppy.analyzers.PapasSim import PapasSim
     from heppy.papas.detectors.CMS import CMS
     papas = cfg.Analyzer(
         PapasSim,
-        instance_label = 'papas',              
+        instance_label = 'papas',
         detector = CMS(),
         gen_particles = 'gen_particles_stable',
         sim_particles = 'sim_particles',
         rec_particles = 'rec_particles',
-        display = False,                   
+        display = False,
         verbose = False
     )
 
-    detector:      Detector model to be used. 
+    detector:      Detector model to be used.
     gen_particles: Name of the input gen particle collection
-    sim_particles: Name extension for the output sim particle collection. 
-                   Note that the instance label is prepended to this name. 
-                   Therefore, in this particular case, the name of the output 
+    sim_particles: Name extension for the output sim particle collection.
+                   Note that the instance label is prepended to this name.
+                   Therefore, in this particular case, the name of the output
                    sim particle collection is "papas_sim_particles".
     rec_particles: Name extension for the output reconstructed particle collection.
-                   Same comments as for the sim_particles parameter above. 
+                   Same comments as for the sim_particles parameter above.
     display      : Enable the event display
     verbose      : Enable the detailed printout.
     '''
@@ -55,16 +55,16 @@ class PapasSim(Analyzer):
         self.recname = '_'.join([self.instance_label,  self.cfg_ana.rec_particles])
         self.is_display = self.cfg_ana.display
         if self.is_display:
-            self.init_display()        
-        
+            self.init_display()
+
     def init_display(self):
         self.display = Display(['xy','yz'])
         self.gdetector = GDetector(self.detector)
         self.display.register(self.gdetector, layer=0, clearable=False)
         self.is_display = True
-        
+
     def process(self, event):
-        event.simulator = self 
+        event.simulator = self
         if self.is_display:
             self.display.clear()
         pfsim_particles = []
@@ -91,9 +91,6 @@ class PapasSim(Analyzer):
             elif label == 'hcal_in':
                 event.HCALclusters[2,id(element)]=element
             else:
-                print label 
+                print label
                 assert(False)
-
-                
-        # setattr(event, self.recname, particles)
-        
+        setattr(event, self.recname, particles)

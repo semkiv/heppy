@@ -8,6 +8,8 @@ logging.shutdown()
 reload(logging)
 logging.basicConfig(level=logging.WARNING)
 
+make_tree = True
+
 comp = cfg.Component(
     'example',
     # files = 'example.root'
@@ -16,7 +18,7 @@ comp = cfg.Component(
 selectedComponents = [comp]
 
 
-#TODO colin debug this! 
+#TODO colin debug this!
 from heppy.analyzers.Gun import Gun
 source = cfg.Analyzer(
     Gun,
@@ -26,7 +28,7 @@ source = cfg.Analyzer(
     ptmin = 10,
     ptmax = 10,
     flat_pt = True,
-)  
+)
 
 from ROOT import gSystem
 # gSystem.Load("libdatamodelDict")
@@ -50,9 +52,13 @@ from heppy.analyzers.PapasPFBlockBuilder import PapasPFBlockBuilder
 pfblocks = cfg.Analyzer(
     PapasPFBlockBuilder
 )
+<<<<<<< HEAD
 
-# and then particle reconstruction from blocks 
+# and then particle reconstruction from blocks
 
+=======
+
+>>>>>>> 76bb81a8b2e7698756805fb316dfd2e69dadc09f
 # definition of a sequence of analyzers,
 # the analyzers will process each event in this order
 sequence = cfg.Sequence( [
@@ -60,7 +66,16 @@ sequence = cfg.Sequence( [
     papas,
     pfblocks,
     ] )
- 
+<<<<<<< HEAD
+
+=======
+if make_tree:
+    from jet_tree_cff import jet_tree_sequence
+    sequence.extend( jet_tree_sequence('gen_particles_stable',
+                                       'papas_rec_particles') )
+
+
+>>>>>>> 76bb81a8b2e7698756805fb316dfd2e69dadc09f
 config = cfg.Config(
     components = selectedComponents,
     sequence = sequence,
@@ -85,24 +100,24 @@ if __name__ == '__main__':
     def next():
         loop.process(loop.iEvent+1)
         if display:
-            display.draw()            
+            display.draw()
 
     iev = None
     if len(sys.argv)==2:
         papas.display = True
         iev = int(sys.argv[1])
-        
+
     loop = Looper( 'looper', config,
                    nEvents=100,
                    nPrint=0,
                    timeReport=True)
     simulation = None
-    for ana in loop.analyzers: 
+    for ana in loop.analyzers:
         if hasattr(ana, 'display'):
             simulation = ana
     display = getattr(simulation, 'display', None)
     simulator = getattr(simulation, 'simulator', None)
-    if simulator: 
+    if simulator:
         detector = simulator.detector
     if iev is not None:
         process(iev)

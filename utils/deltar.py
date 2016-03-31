@@ -33,18 +33,19 @@ def inConeCollection(pivot, particles, deltaRMax, deltaRMin=1e-5):
     dR2Min = deltaRMin ** 2
     results = []
     for ptc in particles:
-        dR2 = deltaR2(pivot.eta(), pivot.phi(), ptc.eta(), ptc.phi()) 
-        if dR2Min < dR2 < dR2Max:
+        dR2 = deltaR2(pivot.eta(), pivot.phi(), ptc.eta(), ptc.phi())
+        
+        if dR2Min <= dR2 < dR2Max:
             results.append(ptc)
     return results
 
 def matchObjectCollection3 ( objects, matchCollection, deltaRMax = 0.3, filter = lambda x,y : True ):
     '''Univoque association of an element from matchCollection to an element of objects.
     Reco and Gen objects get the "matched" attribute, true is they are re part of a matched tulpe.
-    By default, the matching is true only if delta R is smaller than 0.3. 
+    By default, the matching is true only if delta R is smaller than 0.3.
     '''
     #
-                                                                                                                                                                                                                                       
+
     pairs = {}
     if len(objects)==0:
             return pairs
@@ -112,7 +113,7 @@ def cleanObjectCollection2( objects, masks, deltaRMin ):
             # one should again remove the element at index 1
             idx -= nRemoved
             del cleanObjects[idx]
-            nRemoved += 1 
+            nRemoved += 1
     return cleanObjects
 
 
@@ -124,7 +125,7 @@ def cleanObjectCollection( objects, masks, deltaRMin ):
     cleanObjects = []
     dirtyObjects = []
     for object in objects:
-        ok = True 
+        ok = True
         for mask in masks:
             dR2 = deltaR2( object.eta(), object.phi(),
                            mask.eta(), mask.phi() )
@@ -160,7 +161,7 @@ def matchObjectCollection( objects, matchCollection, deltaR2Max):
         if dr2<deltaR2Max:
             pairs[object] = bm
         else:
-            pairs[object] = None            
+            pairs[object] = None
     return pairs
 
 
@@ -169,7 +170,7 @@ def matchObjectCollection2 ( objects, matchCollection, deltaRMax = 0.3 ):
     Reco and Gen objects get the "matched" attribute, true is they are re part of a matched tulpe.
     By default, the matching is true only if delta R is smaller than 0.3.
     '''
-    
+
     pairs = {}
     if len(objects)==0:
             return pairs
@@ -185,7 +186,7 @@ def matchObjectCollection2 ( objects, matchCollection, deltaRMax = 0.3 ):
         object.matched = False
     for match in matchCollection:
         match.matched = False
-    
+
     deltaR2Max = deltaRMax * deltaRMax
     for dR2, (object, match) in allPairs:
 	if dR2 > deltaR2Max:
@@ -194,7 +195,7 @@ def matchObjectCollection2 ( objects, matchCollection, deltaRMax = 0.3 ):
             object.matched = True
             match.matched = True
             pairs[object] = match
-    
+
     for object in objects:
        if object.matched == False:
 	   pairs[object] = None
@@ -202,4 +203,3 @@ def matchObjectCollection2 ( objects, matchCollection, deltaRMax = 0.3 ):
     return pairs
     # by now, the matched attribute remains in the objects, for future usage
     # one could remove it with delattr (object, attrname)
-

@@ -6,7 +6,7 @@ import glob
 
 # Forbidding PyROOT to hijack help system,
 # in case the configuration module is used as a script.
-import ROOT 
+import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 def printComps(comps, details=False):
@@ -50,12 +50,12 @@ class CFG(object):
         all = [ header ]
         all.extend(varlines)
         return '\n'.join( all )
-    
+
 class Analyzer( CFG ):
     '''Base analyzer configuration, see constructor'''
     names = set()
-    
-    def __init__(self, class_object, instance_label='1', 
+
+    def __init__(self, class_object, instance_label='1',
                  verbose=False, **kwargs):
         '''
         One could for example define the analyzer configuration for a
@@ -74,25 +74,25 @@ class Analyzer( CFG ):
           m_max = 200
         )
 
-        The first argument is your analyzer class. 
-        It should inherit from heppy.framework.analyzer.Analyser 
+        The first argument is your analyzer class.
+        It should inherit from heppy.framework.analyzer.Analyser
 
         The second argument is optional.
-        If you have several analyzers of the same class, 
-        e.g. ZEleEleAna and ZMuMuAna, 
-        you may choose to provide it to keep track of the output 
-        of these analyzers. 
+        If you have several analyzers of the same class,
+        e.g. ZEleEleAna and ZMuMuAna,
+        you may choose to provide it to keep track of the output
+        of these analyzers.
         If you don't so so, the instance labels of the analyzers will
         automatically be set to 1, 2, etc.
 
         Finally, any kinds of keyword arguments can be added.
-        
-        This analyzer configuration object will become available 
+
+        This analyzer configuration object will become available
         as self.cfg_ana in your ZMuMuAnalyzer.
         '''
 
         self.class_object = class_object
-        self.instance_label = instance_label
+        self.instance_label = instance_label # calls _build_name
         self.verbose = verbose
         super(Analyzer, self).__init__(**kwargs)
 
@@ -101,10 +101,10 @@ class Analyzer( CFG ):
         its instance_label. In that case, one must stay consistent.'''
         self.__dict__[name] = value
         if name == 'instance_label':
-            self.name = self._build_name()   
+            self.name = self._build_name()
 
     def _build_name(self):
-        class_name = '.'.join([self.class_object.__module__, 
+        class_name = '.'.join([self.class_object.__module__,
                                self.class_object.__name__])
         while 1:
             # if class_name == 'heppy.analyzers.ResonanceBuilder.ResonanceBuilder':
@@ -124,12 +124,15 @@ class Analyzer( CFG ):
                     # here, reloading module in ipython
                     self.__class__.names = set()
                     self.__dict__['instance_label'] = self.instance_label
-        return name 
+        return name
 
-    
+    def __repr__(self):
+        baserepr = super(Analyzer, self).__repr__()
+        return ':'.join([baserepr, self.name])
+
 class Service( CFG ):
-    
-    def __init__(self, class_object, instance_label='1', 
+
+    def __init__(self, class_object, instance_label='1',
                  verbose=False, **kwargs):
         self.class_object = class_object
         self.instance_label = instance_label
@@ -138,11 +141,11 @@ class Service( CFG ):
         super(Service, self).__init__(**kwargs)
 
     def _build_name(self):
-        class_name = '.'.join([self.class_object.__module__, 
+        class_name = '.'.join([self.class_object.__module__,
                                self.class_object.__name__])
         name = '_'.join([class_name, self.instance_label])
-        return name 
-   
+        return name
+
 
 class Sequence( list ):
     '''A list with print functionalities.
@@ -232,5 +235,3 @@ class Config( object ):
         sequence = str(self.sequence)
         services = '\n'.join( map(str, self.services))
         return '\n'.join([comp, sequence, services])
-
-

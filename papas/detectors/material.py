@@ -12,8 +12,8 @@ class Material(object):
         freepath = self.x0 if ptc.is_em() else self.lambdaI
         if freepath == 0.0:
             return sys.float_info.max
-        else: 
-            return random.expovariate(freepath)
+        else:
+            return random.expovariate(1./freepath)
 
 void = Material('void', 0, 0)
 

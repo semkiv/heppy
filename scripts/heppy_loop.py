@@ -116,6 +116,7 @@ def main( options, args ):
         sys.exit(3)
 
     file = open( cfgFileName, 'r' )
+    sys.path.append( os.path.dirname(cfgFileName) )
     cfg = imp.load_source( 'cfg', cfgFileName, file)
 
     selComps = [comp for comp in cfg.config.components if len(comp.files)>0]
@@ -176,7 +177,7 @@ if __name__ == '__main__':
                       action='store_true',
                       help="do not print log messages to screen.",
                       default=False)
- 
+
     (options,args) = parser.parse_args()
 
     options.iEvent = None
