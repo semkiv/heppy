@@ -1,17 +1,15 @@
 import unittest
 import shutil
-import os
-import copy
-from simple_example_cfg import config, stopper 
+import os 
+from simple_example_noindexing_cfg import config
 from heppy.utils.testtree import create_tree, remove_tree
 from heppy.framework.looper import Looper
-from heppy.framework.exceptions import UserStop
 from ROOT import TFile
 
 import logging
 logging.getLogger().setLevel(logging.ERROR)
 
-class TestSimpleExample(unittest.TestCase):
+class TestNoIndexing(unittest.TestCase):
 
     def setUp(self):
         self.fname = create_tree()
@@ -50,25 +48,16 @@ class TestSimpleExample(unittest.TestCase):
         self.assertEqual(loop.nEvProcessed, self.nevents-first)
 
     def test_process_event(self):
+        '''Test that indeed, calling loop.process(iev) raises
+        TypeError if the events backend does not support indexing. 
+        '''
         loop = Looper( self.outdir, config,
                        nEvents=None,
                        nPrint=0,
                        timeReport=True)
-        loop.process(10)
-        self.assertEqual(loop.event.input.var1, 10)
-        loop.process(10)
+        self.assertRaises(TypeError, loop.process, 10)
         
-    def test_userstop(self):
-        config_with_stopper = copy.copy(config)
-        config_with_stopper.sequence.insert(1, stopper)
-        loop = Looper( self.outdir, config_with_stopper,
-                       nEvents=None,
-                       nPrint=0,
-                       timeReport=True)
-        self.assertRaises(UserStop, loop.process, 10)
-  
-
-
+       
 if __name__ == '__main__':
 
     unittest.main()
